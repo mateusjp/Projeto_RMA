@@ -39,7 +39,7 @@ class Nodes:
 
 def collision(img,x1,y1,x2,y2):
 	# check collision
-    d = 0.0000001
+    d = 0.0
     color=[]
     
     try:
@@ -55,9 +55,9 @@ def collision(img,x1,y1,x2,y2):
         print("Y1: ",y1)
         print("Y2: ",y2)
 
-    print("collision",x,y)
+    # print("collision",x,y)
     for i in range(len(x)):
-        print(int(x[i]),int(y[i]))
+        # print(int(x[i]),int(y[i]))
         color.append(img[int(y[i]),int(x[i])])
     if (0 in color):
         return True #collision
@@ -70,15 +70,15 @@ def check_collision(img,x1,y1,x2,y2):
     _,theta = dist_and_angle(x2,y2,x1,y1)
     x=x2 + stepSize*np.cos(theta)
     y=y2 + stepSize*np.sin(theta)
-    print(x2,y2,x1,y1)
-    print("theta",theta)
-    print("check_collision",x,y)
+    # print(x2,y2,x1,y1)
+    # print("theta",theta)
+    # print("check_collision",x,y)
 
     # TODO: trim the branch if its going out of image area
-    print("Image shape",img.shape)
+    # print("Image shape",img.shape)
     hy,hx=img.shape
     if y<0 or y>hy or x<0 or x>hx:
-        print("Point out of image bound")
+        # print("Point out of image bound")
         directCon = False
         nodeCon = False
     else:
@@ -130,18 +130,18 @@ def RRT(img, img2, start, end, stepSize):
     pathFound = False
     while pathFound==False:
         nx,ny = rnd_point(h,l)
-        print("Random points:",nx,ny)
+        # print("Random points:",nx,ny)
         nearest_ind = nearest_node(nx,ny)
         nearest_x = node_list[nearest_ind].x
         nearest_y = node_list[nearest_ind].y
-        print("Nearest node coordinates:",nearest_x,nearest_y)
+        # print("Nearest node coordinates:",nearest_x,nearest_y)
 
         #check direct connection
         tx,ty,directCon,nodeCon = check_collision(img,nx,ny,nearest_x,nearest_y)
-        print("Check collision:",tx,ty,directCon,nodeCon)
+        # print("Check collision:",tx,ty,directCon,nodeCon)
 
         if directCon and nodeCon:
-            print("Node can connect directly with end")
+            # print("Node can connect directly with end")
             node_list.append(i)
             node_list[i] = Nodes(tx,ty)
             node_list[i].parent_x = node_list[nearest_ind].parent_x.copy()
@@ -165,11 +165,11 @@ def RRT(img, img2, start, end, stepSize):
                     (path_x[j+1],path_y[j+1]) = pixel2gunit((end[0],end[1]))
             cv2.imwrite("media/"+str(i)+".jpg",img2)
             cv2.imwrite("out.jpg",img2)
-            print()
+            # print()
             break
 
         elif nodeCon:
-            print("Nodes connected")
+            # print("Nodes connected")
             node_list.append(i)
             node_list[i] = Nodes(tx,ty)
             node_list[i].parent_x = node_list[nearest_ind].parent_x.copy()
@@ -188,7 +188,7 @@ def RRT(img, img2, start, end, stepSize):
             continue
 
         else:
-            print("No direct con. and no node con. :( Generating new rnd numbers")
+            # print("No direct con. and no node con. :( Generating new rnd numbers")
             continue 
     return path_x, path_y
 
@@ -209,7 +209,7 @@ def img_prepossessing(img, start, end):
 	gazebo_map = rot_map[81:637, 147:710] # second crop
 	gray_map = cv2.cvtColor(gazebo_map, cv2.COLOR_BGR2GRAY) # transform map in grayscale
 	_, bw_inv_map = cv2.threshold(gray_map, 253, 255, cv2.THRESH_BINARY_INV) # transform map in black and white and invert
-	kernel = np.ones((18, 18), 'uint8')
+	kernel = np.ones((30, 30), 'uint8')
 	bigwall_map = cv2.dilate(bw_inv_map, kernel, iterations=1) # make walls bigger
 	_, bw_map = cv2.threshold(bigwall_map, 253, 255, cv2.THRESH_BINARY_INV) # invert again
 
@@ -217,7 +217,7 @@ def img_prepossessing(img, start, end):
 	cv2.circle(gazebo_map, (end[0],end[1]), 5,(54, 0, 102),thickness=3, lineType=8) # plot end point
 	
 	# show results
-	# cv2.imshow('Pospossessed Image', bw_map)
+	# cv2.imshow('Pospossessed Image', gazebo_map)
 	# cv2.waitKey(0)
 
 	return bw_map, gazebo_map
@@ -229,17 +229,20 @@ if __name__ == '__main__':
     end_gunit = (7,23) # target coordinate in gazebo
     start = (int((start_gunit[0]-1)/0.05),int((-start_gunit[1]+29)/0.05)) # starting coordinate in picture
     end = (int((end_gunit[0]-1)/0.05),int((-end_gunit[1]+29)/0.05)) # target coordinate in picture
-    stepSize = 40 # stepsize for RRT
+    stepSize = 20 # stepsize for RRT
     node_list = [0] # list to store all the node points
 
     bw_maze,maze = img_prepossessing(img, start, end)
 
     path_x, path_y = RRT(bw_maze, maze, start, end, stepSize)
 
-    print(path_x)
-    print(path_y)
+    #pathGazebo = [[13.0, 5.385999999999999], [13.5, 5.385999999999999], [14.0, 4.885999999999999], [14.5, 4.785999999999998], [15.0, 4.785999999999998], [15.5, 4.785999999999998], [16.0, 4.785999999999998], [16.5, 4.785999999999998], [17.0, 4.785999999999998], [17.5, 4.785999999999998], [18.0, 4.785999999999998], [18.5, 4.785999999999998], [19.0, 4.785999999999998], [19.5, 4.785999999999998], [20.0, 4.785999999999998], [20.200000000000003, 3.8859999999999992], [20.200000000000003, 3.3859999999999992], [20.200000000000003, 2.8859999999999992], [20.200000000000003, 2.3859999999999992], [19.900000000000002, 2.0859999999999985], [19.400000000000002, 2.0859999999999985], [18.900000000000002, 2.0859999999999985], [18.400000000000002, 2.0859999999999985], [17.900000000000002, 2.0859999999999985], [17.400000000000002, 2.0859999999999985], [16.9, 2.0859999999999985], [16.4, 2.0859999999999985], [15.9, 2.0859999999999985], [15.4, 2.0859999999999985], [14.9, 2.0859999999999985], [14.4, 2.0859999999999985], [13.9, 2.0859999999999985], [13.4, 2.0859999999999985], [12.9, 2.0859999999999985], [12.4, 2.0859999999999985], [11.9, 2.0859999999999985], [11.4, 2.0859999999999985], [10.9, 2.0859999999999985], [10.4, 2.0859999999999985], [9.9, 2.0859999999999985], [9.700000000000001, 2.5859999999999985], [9.700000000000001, 3.0859999999999985], [9.700000000000001, 3.5859999999999985], [9.700000000000001, 4.0859999999999985], [9.700000000000001, 4.5859999999999985], [9.700000000000001, 5.0859999999999985], [9.700000000000001, 5.5859999999999985], [9.700000000000001, 6.0859999999999985], [9.700000000000001, 6.5859999999999985], [9.700000000000001, 7.0859999999999985], [9.700000000000001, 7.5859999999999985], [9.700000000000001, 8.085999999999999], [10.0, 9.085999999999999], [10.5, 9.085999999999999], [11.0, 9.085999999999999], [11.5, 9.085999999999999], [12.0, 9.686], [12.5, 9.686], [13.0, 10.186], [13.5, 10.686], [14.0, 11.186], [14.5, 11.485999999999997], [15.0, 11.485999999999997], [15.5, 11.485999999999997], [16.0, 11.485999999999997], [16.5, 11.485999999999997], [17.0, 11.485999999999997], [17.5, 11.485999999999997], [18.0, 11.485999999999997], [18.5, 11.485999999999997], [19.0, 11.485999999999997], [19.5, 11.485999999999997], [20.0, 11.485999999999997], [20.5, 11.585999999999999], [21.0, 12.085999999999999], [21.1, 12.585999999999999], [21.1, 12.585999999999999], [21.1, 13.085999999999999], [21.1, 13.585999999999999], [21.1, 14.085999999999999], [21.1, 14.585999999999999], [21.1, 15.085999999999999], [21.1, 15.585999999999999], [21.1, 16.086], [21.1, 16.586], [21.1, 17.086], [21.1, 17.586], [21.1, 18.086], [21.1, 18.586], [21.1, 19.086], [21.1, 19.586], [21.1, 20.086], [21.1, 20.586], [21.1, 21.086], [21.1, 21.586], [21.1, 22.086], [21.0, 22.586], [20.5, 23.186], [20.0, 23.186], [19.5, 23.186], [19.0, 23.186], [18.5, 22.286], [18.0, 21.786], [17.5, 21.286], [17.0, 20.786], [16.5, 20.286], [16.4, 19.786], [16.4, 19.286], [16.4, 19.286], [16.4, 18.785999999999998], [15.9, 18.086], [15.4, 18.086], [14.9, 18.086], [14.4, 18.086], [13.9, 18.086], [13.4, 18.086], [12.9, 18.086], [12.4, 18.086], [11.9, 18.086], [11.4, 18.086], [10.9, 18.086], [10.4, 18.086], [9.9, 18.086], [9.4, 18.886], [8.9, 18.886], [8.4, 19.386], [7.9, 19.886], [7.4, 20.386], [7.0, 20.886], [7.0, 21.386], [7.0, 21.886], [7.0, 22.386]]
+    
+    # print(path_x)
+    # print(path_y)
 
     global pub_
+    global target
 
     rospy.init_node('amcl_pose')
 
@@ -247,31 +250,41 @@ if __name__ == '__main__':
 
     sub_pose = rospy.Subscriber('/odom', Odometry, clbk_pose)
 
-    target = 0
     e = 0.5
-    K = 20
+    K = 5
+    target = 1
 
     rate = rospy.Rate(100)
     while not rospy.is_shutdown():
-
-        print(path_x[target],path_y[target])
         
         msg = Twist()
-        dist,ang = dist_and_angle(path_x[target],path_y[target],x_pos,y_pos)
+        dist,ang = dist_and_angle(x_pos,y_pos,path_x[target],path_y[target])
+
+        print('Distancia: ', dist)
+
         if dist < e:
-            target =+1
-            dist,ang = dist_and_angle(path_x[target],path_y[target],x_pos,y_pos)
+            target = target +1
+            dist,ang = dist_and_angle(x_pos,y_pos,path_x[target],path_y[target])
         
         e_ang = ang - yaw
 
-        ang_vel = K*e_ang
-        print(e_ang)
-        msg.linear.x = 0.0
-        msg.angular.z = ang_vel
+        print('Erro angulo: ', e_ang)
+        print('Caminho: ' , target)
+        print('Orientação: ', yaw)
+        print('Angulo do Alvo:', ang)
+        print('Pos robo: ', x_pos, ' || ', y_pos)
+        print('Pos alvo: ', path_x[target], ' || ', path_y[target])
 
+        if abs(e_ang) < np.deg2rad(5):
+            msg.linear.x = 0.5
+            msg.angular.z = 0.0
+
+        else:
+            msg.angular.z = K*np.sin(e_ang)
+            msg.linear.x = 0.0
+        
         pub_.publish(msg)
 
         rate.sleep()
-
 
         
