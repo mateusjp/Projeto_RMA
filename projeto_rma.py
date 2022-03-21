@@ -1,10 +1,31 @@
 # Importing packages
-
 import cv2
 import imutils
 import numpy as np
 import math
 import random
+
+# import ros stuff
+import rospy
+from geometry_msgs.msg import Twist
+from nav_msgs.msg import Odometry
+from tf import transformations
+from tf.transformations import euler_from_quaternion
+
+
+x_pos = 0
+y_pos = 0
+yaw = 0
+
+
+def clbk_pose(msg):
+    global x_pos, y_pos, yaw
+    
+    x_pos = msg.pose.pose.position.x
+    y_pos = msg.pose.pose.position.y
+    orientation_q = msg.pose.pose.orientation
+    orientation_list = [orientation_q.x, orientation_q.y, orientation_q.z, orientation_q.w]
+    (roll, pitch, yaw) = euler_from_quaternion (orientation_list)
 
 class Nodes:
     #Class to store the RRT graph
@@ -140,9 +161,8 @@ def RRT(img, img2, start, end, stepSize):
             for j in range(len(node_list[i].parent_x)-1):
                 cv2.line(img2, (int(node_list[i].parent_x[j]),int(node_list[i].parent_y[j])), (int(node_list[i].parent_x[j+1]),int(node_list[i].parent_y[j+1])), (255,0,0), thickness=2, lineType=8)
                 (path_x[j],path_y[j]) = pixel2gunit((node_list[i].parent_x[j],node_list[i].parent_y[j]))
-                if j == len(node_list[i].parent_x)-1:
-                	path_x[j+1] = end[0]
-                	path_y[j+1] = end[1]
+                if j == len(node_list[i].parent_x)-2:
+                    (path_x[j+1],path_y[j+1]) = pixel2gunit((end[0],end[1]))
             cv2.imwrite("media/"+str(i)+".jpg",img2)
             cv2.imwrite("out.jpg",img2)
             print()
@@ -163,8 +183,8 @@ def RRT(img, img2, start, end, stepSize):
             cv2.circle(img2, (int(tx),int(ty)), 2,(0,0,255),thickness=3, lineType=8)
             cv2.line(img2, (int(tx),int(ty)), (int(node_list[nearest_ind].x),int(node_list[nearest_ind].y)), (0,255,0), thickness=1, lineType=8)
             cv2.imwrite("media/"+str(i)+".jpg",img2)
-            cv2.imshow("sdc",img2)
-            cv2.waitKey(1)
+            #cv2.imshow("sdc",img2)
+            #cv2.waitKey(1)
             continue
 
         else:
@@ -197,21 +217,61 @@ def img_prepossessing(img, start, end):
 	cv2.circle(gazebo_map, (end[0],end[1]), 5,(54, 0, 102),thickness=3, lineType=8) # plot end point
 	
 	# show results
-	cv2.imshow('Pospossessed Image', bw_map)
-	cv2.waitKey(0)
+	# cv2.imshow('Pospossessed Image', bw_map)
+	# cv2.waitKey(0)
 
 	return bw_map, gazebo_map
 
 if __name__ == '__main__':
 
-	img = cv2.imread('mapa.pgm') # load maze
-	start_gunit = (13,6) # starting coordinate in gazebo
-	end_gunit = (7,23) # target coordinate in gazebo
-	start = (int((start_gunit[0]-1)/0.05),int((-start_gunit[1]+29)/0.05)) # starting coordinate in picture
-	end = (int((end_gunit[0]-1)/0.05),int((-end_gunit[1]+29)/0.05)) # target coordinate in picture
-	stepSize = 40 # stepsize for RRT
-	node_list = [0] # list to store all the node points
+    img = cv2.imread('mapa.pgm') # load maze
+    start_gunit = (13,6) # starting coordinate in gazebo
+    end_gunit = (7,23) # target coordinate in gazebo
+    start = (int((start_gunit[0]-1)/0.05),int((-start_gunit[1]+29)/0.05)) # starting coordinate in picture
+    end = (int((end_gunit[0]-1)/0.05),int((-end_gunit[1]+29)/0.05)) # target coordinate in picture
+    stepSize = 40 # stepsize for RRT
+    node_list = [0] # list to store all the node points
 
-	bw_maze,maze = img_prepossessing(img, start, end)
+    bw_maze,maze = img_prepossessing(img, start, end)
 
-	RRT(bw_maze, maze, start, end, stepSize)
+    path_x, path_y = RRT(bw_maze, maze, start, end, stepSize)
+
+    print(path_x)
+    print(path_y)
+
+    global pub_
+
+    rospy.init_node('amcl_pose')
+
+    pub_ = rospy.Publisher('/cmd_vel', Twist, queue_size=10)
+
+    sub_pose = rospy.Subscriber('/odom', Odometry, clbk_pose)
+
+    target = 0
+    e = 0.5
+    K = 20
+
+    rate = rospy.Rate(100)
+    while not rospy.is_shutdown():
+
+        print(path_x[target],path_y[target])
+        
+        msg = Twist()
+        dist,ang = dist_and_angle(path_x[target],path_y[target],x_pos,y_pos)
+        if dist < e:
+            target =+1
+            dist,ang = dist_and_angle(path_x[target],path_y[target],x_pos,y_pos)
+        
+        e_ang = ang - yaw
+
+        ang_vel = K*e_ang
+        print(e_ang)
+        msg.linear.x = 0.0
+        msg.angular.z = ang_vel
+
+        pub_.publish(msg)
+
+        rate.sleep()
+
+
+        
