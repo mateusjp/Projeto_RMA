@@ -38,3 +38,7 @@ python3 projeto_rma.py
 ```
 
 O programa irá iniciar e encontrar tentará encontrar o caminho para o objetivo, pode acontecer um erro no processo, basta executar o código novamente.
+
+# Resultado
+
+O vídeo do resultado pode ser visto [neste link](https://drive.google.com/file/d/1ls4PEDdtmtQigpjfPncIXWGmtyRwSLwk/view?usp=sharing)
