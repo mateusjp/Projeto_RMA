@@ -38,7 +38,7 @@ Lista de bibliotecas necessárias para o *Python*:
 * random
 
 ```sh
-pip3 install pip opencv-python imutils numpy
+pip3 install opencv-python imutils numpy random
 ```
 
 # Execução
@@ -53,6 +53,7 @@ roslaunch rrt_projeto.launch
 Execute o arquivo *projeto_rma.py*
 
 ```sh
+cd workspace/src/smb_common/smb_gazebo/scripts
 python3 projeto_rma.py
 ```
 
