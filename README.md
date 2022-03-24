@@ -46,14 +46,14 @@ pip3 install opencv-python imutils numpy
 Execute o arquivo *rrt_projeto.launch* que se encontra na pasta **workspace/src/smb_common/smb_gazebo/launch**
 
 ```sh
-cd ~workspace_projrma/src/Projeto_RMA/smb_common/smb_gazebo/launch
+cd ~/workspace_projrma/src/Projeto_RMA/smb_common/smb_gazebo/launch
 roslaunch rrt_projeto.launch
 ```
 
 Execute o arquivo *projeto_rma.py*
 
 ```sh
-cd ~workspace_projrma/src/Projeto_RMA/smb_common/smb_gazebo/scripts
+cd ~/workspace_projrma/src/Projeto_RMA/smb_common/smb_gazebo/scripts
 python3 projeto_rma.py
 ```
 
