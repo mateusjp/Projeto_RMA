@@ -8,10 +8,25 @@ Este código se baseou no algoritmo RRT do nimRobotics, disponível [neste repos
 
 # Instalação
 
-Para a execução será necessário do arquivo **smb_gazebo**, disponível na *.zip* da entrega da atividade ou [neste link](https://drive.google.com/file/d/1WESPXsfFjpNs6oRHgiX93BinENzkG6cw/view?usp=sharing). Essa pasta deve ser descompactada em **workspace/src**
+Primeiro passo é a criação do workspace:
 
 ```sh
-cd workspace/src
+mkdir -p ~/workspace_projrma/src
+cd ~/workspace_projrma/
+catkin_make
+source devel/setup.bash
+catkin init
+catkin clean
+```
+O próximo é a instalação dos pacotes relacionados ao código e ao ros
+
+```sh
+cd ~/workspace_projrma/src
+git clone https://github.com/ros-perception/slam_gmapping.git
+git clone https://github.com/ros-planning/navigation.git
+git clone https://github.com/mateusjp/Projeto_RMA.git
+catkin build
+cd smb_common
 ```
 
 Lista de bibliotecas necessárias para o *Python*:
@@ -21,6 +36,10 @@ Lista de bibliotecas necessárias para o *Python*:
 * numpy
 * math
 * random
+
+```sh
+pip3 install pip opencv-python imutils numpy
+```
 
 # Execução
 
